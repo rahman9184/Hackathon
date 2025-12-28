@@ -1,0 +1,2265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Tip Generator</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Page Transition */
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Active Navigation */
+        .nav-item.active {
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white !important;
+        }
+        
+        /* Mobile Navigation */
+        .mobile-nav {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .desktop-nav {
+                display: none;
+            }
+            .mobile-nav {
+                display: block;
+            }
+            .mobile-menu {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: white;
+                z-index: 1000;
+                padding: 20px;
+                overflow-y: auto;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            .mobile-menu.active {
+                transform: translateX(0);
+            }
+        }
+        
+        /* Blue Theme */
+        .tip-card {
+            background: linear-gradient(135deg, #2563EB 0%, #1E40AF 100%);
+            transition: transform 0.3s ease;
+        }
+
+        .tip-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .tip-display {
+            min-height: 180px;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 640px) {
+            .tip-display {
+                min-height: 160px;
+            }
+            .grid-cols-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .grid-cols-4 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .text-4xl {
+                font-size: 2rem;
+            }
+            .text-3xl {
+                font-size: 1.75rem;
+            }
+            .text-2xl {
+                font-size: 1.5rem;
+            }
+            .p-8 {
+                padding: 1.5rem;
+            }
+            .p-6 {
+                padding: 1rem;
+            }
+            .gap-6 {
+                gap: 1rem;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .skill-btn {
+            transition: all 0.2s ease;
+        }
+
+        .skill-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 15px rgba(255, 255, 255, 0.8); }
+        }
+
+        @keyframes glow-button {
+            0%, 100% {
+                box-shadow: 0 0 5px rgba(59, 130, 246, 0.5),
+                            0 0 10px rgba(59, 130, 246, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 15px rgba(59, 130, 246, 0.8),
+                            0 0 25px rgba(59, 130, 246, 0.5),
+                            0 0 35px rgba(59, 130, 246, 0.3);
+            }
+        }
+
+        .float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .sparkle {
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
+
+        .bounce {
+            animation: bounce 0.8s ease-in-out;
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .glow {
+            animation: glow 1.5s ease-in-out infinite;
+        }
+
+        .glow-button {
+            animation: glow-button 2s ease-in-out infinite;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #3B82F6, #2563EB);
+            border-radius: 2px;
+            transition: width 0.6s ease;
+        }
+
+        /* Tip Card Shine Effect */
+        .shine-effect {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shine-effect::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to right,
+                transparent 20%,
+                rgba(255, 255, 255, 0.1) 50%,
+                transparent 80%
+            );
+            transform: rotate(30deg);
+            transition: transform 0.6s;
+        }
+
+        .shine-effect:hover::after {
+            transform: rotate(30deg) translateX(100%);
+        }
+
+        /* Tip Difficulty Badge */
+        .difficulty-easy {
+            background: #10B981 !important;
+            color: white !important;
+        }
+
+        .difficulty-medium {
+            background: #F59E0B !important;
+            color: white !important;
+        }
+
+        .difficulty-hard {
+            background: #EF4444 !important;
+            color: white !important;
+        }
+
+        /* Active button state */
+        .active-situation {
+            background: linear-gradient(135deg, #2563EB, #3B82F6) !important;
+            color: white !important;
+            border-color: #2563EB !important;
+        }
+
+        .active-situation i {
+            color: white !important;
+        }
+
+        .active-situation p {
+            color: white !important;
+        }
+
+        .active-skill {
+            background: linear-gradient(135deg, #1D4ED8, #2563EB) !important;
+            color: white !important;
+            border-color: #1D4ED8 !important;
+        }
+
+        .active-skill p {
+            color: white !important;
+        }
+
+        /* Blue theme adjustments */
+        .bg-gradient-blue {
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+        }
+
+        .border-blue-light {
+            border-color: #DBEAFE;
+        }
+
+        .hover-bg-blue-50:hover {
+            background-color: #EFF6FF;
+        }
+
+        /* Feature icons animation */
+        .feature-icon {
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1);
+            color: #2563EB;
+        }
+
+        /* Section Cards */
+        .section-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .section-card:hover {
+            transform: translateY(-5px);
+            border-color: #3B82F6;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Color classes for icons */
+        .text-blue-600 { color: #2563EB; }
+        .text-pink-600 { color: #DB2777; }
+        .text-green-600 { color: #059669; }
+        .text-purple-600 { color: #7C3AED; }
+        .text-yellow-600 { color: #D97706; }
+        .text-indigo-600 { color: #4F46E5; }
+        .text-red-600 { color: #DC2626; }
+        .text-teal-600 { color: #0D9488; }
+
+        /* AI Analysis Styles */
+        .ai-analysis-content {
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .ai-tag {
+            background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+            margin: 0.125rem;
+        }
+
+        .loading-dots {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+        }
+
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            margin: 0 4px;
+            background: #3B82F6;
+            border-radius: 50%;
+            animation: loadingDot 1.4s ease-in-out infinite;
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes loadingDot {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <!-- Mobile Navigation Button -->
+    <div class="mobile-nav lg:hidden">
+        <div class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center cursor-pointer" onclick="navigateTo('home')">
+                    <i class="fas fa-comments text-blue-600 text-2xl mr-3"></i>
+                    <h1 class="text-xl font-bold text-gray-800">Social Tip Generator</h1>
+                </div>
+                <button onclick="toggleMobileMenu()" class="p-2 rounded-lg text-gray-600 hover:text-blue-600">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="mobile-menu">
+            <div class="flex justify-between items-center mb-8">
+                <div class="flex items-center">
+                    <i class="fas fa-comments text-blue-600 text-2xl mr-3"></i>
+                    <h2 class="text-xl font-bold text-gray-800">Menu</h2>
+                </div>
+                <button onclick="toggleMobileMenu()" class="p-2 rounded-lg text-gray-600 hover:text-blue-600">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-2">
+                <button onclick="navigateTo('home')" class="w-full text-left px-4 py-3 rounded-lg text-gray-600 hover:bg-blue-50 hover:text-blue-600">Home</button>
+                <button onclick="navigateTo('ai-custom')" class="w-full text-left px-4 py-3 rounded-lg text-gray-600 hover:bg-purple-50 hover:text-purple-600">
+                    <i class="fas fa-robot mr-2"></i>AI Analysis
+                </button>
+                <button onclick="navigateTo('networking')" class="w-full text-left px-4 py-3 rounded-lg text-gray-600 hover:bg-blue-50 hover:text-blue-600">Networking</button>
+                <button onclick="navigateTo('dating')" class="w-full text-left px-4 py-3 rounded-lg text-gray-600 hover:bg-pink-50 hover:text-pink-600">Dating</button>
+                <button onclick="navigateTo('communication')" class="w-full text-left px-4 py-3 rounded-lg text-gray-600 hover:bg-green-50 hover:text-green-600">Communication</button>
+                <button onclick="navigateTo('socialmedia')" class="w-full text-left px-4 py-3 rounded-lg text-gray-600 hover:bg-purple-50 hover:text-purple-600">Social Media</button>
+                <button onclick="navigateTo('learning')" class="w-full text-left px-4 py-3 rounded-lg text-gray-600 hover:bg-yellow-50 hover:text-yellow-600">Learning</button>
+                <button onclick="navigateTo('family')" class="w-full text-left px-4 py-3 rounded-lg text-gray-600 hover:bg-indigo-50 hover:text-indigo-600">Family</button>
+                <button onclick="navigateTo('stress')" class="w-full text-left px-4 py-3 rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-600">Stress</button>
+                <button onclick="navigateTo('personality')" class="w-full text-left px-4 py-3 rounded-lg text-gray-600 hover:bg-teal-50 hover:text-teal-600">Personality</button>
+            </div>
+            
+            <div class="mt-8 pt-8 border-t border-gray-200">
+                <button onclick="navigateTo('ai-custom')" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 rounded-lg">
+                    <i class="fas fa-robot mr-2"></i>Try AI Analysis
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Navigation -->
+    <nav class="desktop-nav bg-white shadow-sm hidden lg:block">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center cursor-pointer" onclick="navigateTo('home')">
+                    <i class="fas fa-comments text-blue-600 text-2xl mr-3"></i>
+                    <h1 class="text-xl font-bold text-gray-800">Social Tip Generator</h1>
+                </div>
+                <div class="flex space-x-2 overflow-x-auto">
+                    <button onclick="navigateTo('home')" class="nav-item px-4 py-2 rounded-lg text-gray-600 hover:text-blue-600">Home</button>
+                    <button onclick="navigateTo('ai-custom')" class="nav-item px-4 py-2 rounded-lg text-gray-600 hover:text-purple-600">
+                        <i class="fas fa-robot mr-1"></i>AI
+                    </button>
+                    <button onclick="navigateTo('networking')" class="nav-item px-4 py-2 rounded-lg text-gray-600 hover:text-blue-600">Networking</button>
+                    <button onclick="navigateTo('dating')" class="nav-item px-4 py-2 rounded-lg text-gray-600 hover:text-pink-600">Dating</button>
+                    <button onclick="navigateTo('communication')" class="nav-item px-4 py-2 rounded-lg text-gray-600 hover:text-green-600">Communication</button>
+                    <button onclick="navigateTo('socialmedia')" class="nav-item px-4 py-2 rounded-lg text-gray-600 hover:text-purple-600">Social Media</button>
+                    <button onclick="navigateTo('learning')" class="nav-item px-4 py-2 rounded-lg text-gray-600 hover:text-yellow-600">Learning</button>
+                    <button onclick="navigateTo('family')" class="nav-item px-4 py-2 rounded-lg text-gray-600 hover:text-indigo-600">Family</button>
+                    <button onclick="navigateTo('stress')" class="nav-item px-4 py-2 rounded-lg text-gray-600 hover:text-red-600">Stress</button>
+                    <button onclick="navigateTo('personality')" class="nav-item px-4 py-2 rounded-lg text-gray-600 hover:text-teal-600">Personality</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Home Page -->
+    <div id="home-page" class="page active">
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Hero Section -->
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">Social Tip Generator</h1>
+                <p class="text-gray-600 text-lg max-w-3xl mx-auto">Actionable tips for networking, dating, communication, and personal growth</p>
+            </div>
+
+            <!-- All Sections Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- AI Analysis Card -->
+                <div onclick="navigateTo('ai-custom')" class="section-card bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 shadow-lg cursor-pointer transform transition-all duration-300 hover:scale-[1.02]">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-robot text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">AI Situation Analysis</h3>
+                    </div>
+                    <p class="text-white/90 mb-4">Describe your specific social situation and get AI-powered personalized advice.</p>
+                    <div class="text-sm text-white font-medium">
+                        <span>Personalized tips</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Networking Card -->
+                <div onclick="navigateTo('networking')" class="section-card bg-white rounded-2xl p-6 shadow-lg cursor-pointer">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-handshake text-blue-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Networking</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Build professional relationships and expand your network effectively.</p>
+                    <div class="text-sm text-blue-600 font-medium">
+                        <span>12 tips available</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Dating Card -->
+                <div onclick="navigateTo('dating')" class="section-card bg-white rounded-2xl p-6 shadow-lg cursor-pointer">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-heart text-pink-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Dating</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Build meaningful connections and improve your dating experiences.</p>
+                    <div class="text-sm text-pink-600 font-medium">
+                        <span>12 tips available</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Communication Card -->
+                <div onclick="navigateTo('communication')" class="section-card bg-white rounded-2xl p-6 shadow-lg cursor-pointer">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-comments text-green-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Communication</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Enhance your speaking, listening, and interpersonal communication skills.</p>
+                    <div class="text-sm text-green-600 font-medium">
+                        <span>12 tips available</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Social Media Card -->
+                <div onclick="navigateTo('socialmedia')" class="section-card bg-white rounded-2xl p-6 shadow-lg cursor-pointer">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-share-alt text-purple-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Social Media</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Navigate digital platforms effectively and build your online presence.</p>
+                    <div class="text-sm text-purple-600 font-medium">
+                        <span>12 tips available</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Learning Card -->
+                <div onclick="navigateTo('learning')" class="section-card bg-white rounded-2xl p-6 shadow-lg cursor-pointer">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-graduation-cap text-yellow-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Learning</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Develop effective learning habits and knowledge retention strategies.</p>
+                    <div class="text-sm text-yellow-600 font-medium">
+                        <span>12 tips available</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Family Card -->
+                <div onclick="navigateTo('family')" class="section-card bg-white rounded-2xl p-6 shadow-lg cursor-pointer">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-home text-indigo-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Family</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Strengthen family bonds and improve communication at home.</p>
+                    <div class="text-sm text-indigo-600 font-medium">
+                        <span>12 tips available</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Stress Management Card -->
+                <div onclick="navigateTo('stress')" class="section-card bg-white rounded-2xl p-6 shadow-lg cursor-pointer">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-brain text-red-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Stress Management</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Learn techniques to manage stress and maintain emotional balance.</p>
+                    <div class="text-sm text-red-600 font-medium">
+                        <span>12 tips available</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Personality Development Card -->
+                <div onclick="navigateTo('personality')" class="section-card bg-white rounded-2xl p-6 shadow-lg cursor-pointer">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-user-plus text-teal-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Personality Development</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">Develop your personal charisma, confidence, and social presence.</p>
+                    <div class="text-sm text-teal-600 font-medium">
+                        <span>12 tips available</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Generator Section -->
+            <div class="mt-12 bg-gradient-to-r from-blue-600 to-blue-700 rounded-3xl p-8 text-white">
+                <div class="text-center mb-6">
+                    <h2 class="text-3xl font-bold mb-2">Quick Tip Generator</h2>
+                    <p class="text-blue-200">Get started with a personalized tip right now</p>
+                </div>
+                <div class="bg-white/10 rounded-2xl p-6">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <button onclick="navigateTo('ai-custom')" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl p-4 transition-all transform hover:scale-105">
+                            <i class="fas fa-robot text-2xl mb-2"></i>
+                            <p class="font-medium">AI Analysis</p>
+                        </button>
+                        <button onclick="navigateTo('networking')" class="bg-white/20 hover:bg-white/30 rounded-xl p-4 transition-all">
+                            <i class="fas fa-handshake text-2xl mb-2"></i>
+                            <p class="font-medium">Networking</p>
+                        </button>
+                        <button onclick="navigateTo('dating')" class="bg-white/20 hover:bg-white/30 rounded-xl p-4 transition-all">
+                            <i class="fas fa-heart text-2xl mb-2"></i>
+                            <p class="font-medium">Dating</p>
+                        </button>
+                        <button onclick="navigateTo('communication')" class="bg-white/20 hover:bg-white/30 rounded-xl p-4 transition-all">
+                            <i class="fas fa-comments text-2xl mb-2"></i>
+                            <p class="font-medium">Communication</p>
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <button onclick="navigateTo('ai-custom')" class="bg-white text-blue-600 font-bold px-8 py-3 rounded-xl hover:bg-blue-50 transition-all">
+                            <i class="fas fa-robot mr-2"></i>Try AI Analysis
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- AI Custom Situation Page -->
+    <div id="ai-custom-page" class="page">
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Page Header -->
+            <div class="text-center mb-12">
+                <div class="inline-block p-6 bg-gradient-to-r from-purple-100 to-pink-100 rounded-3xl mb-6">
+                    <i class="fas fa-robot text-purple-600 text-5xl"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">AI Situation Analysis</h1>
+                <p class="text-gray-600 text-lg max-w-3xl mx-auto">Describe your specific social situation and get personalized, AI-powered advice tailored to your needs.</p>
+            </div>
+
+            <!-- AI Analysis Section -->
+            <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-3xl p-8 mb-8 border border-purple-200">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Describe Your Situation</h2>
+                    <p class="text-gray-600">Be specific about what's happening, how you feel, and what you'd like to achieve.</p>
+                </div>
+
+                <!-- Situation Input -->
+                <div class="mb-8">
+                    <textarea 
+                        id="ai-situation-input" 
+                        class="w-full h-48 p-6 rounded-2xl border-2 border-purple-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 focus:outline-none resize-none"
+                        placeholder="Describe your social situation here..."
+                    ></textarea>
+                    <div class="flex justify-between items-center mt-2 text-sm text-gray-500">
+                        <span>💡 Tip: Be specific about feelings, context, and goals</span>
+                        <span id="char-count">0/1000</span>
+                    </div>
+                </div>
+
+                <!-- Analyze Button -->
+                <div class="text-center mb-8">
+                    <button onclick="analyzeWithGemini()" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold px-10 py-4 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105 shadow-lg">
+                        <i class="fas fa-brain mr-2"></i>Analyze with AI
+                    </button>
+                </div>
+
+                <!-- Loading Animation -->
+                <div id="ai-loading" class="hidden text-center">
+                    <div class="loading-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <p class="text-gray-600 mt-4">AI is analyzing your situation...</p>
+                </div>
+
+                <!-- AI Analysis Results -->
+                <div id="ai-analysis-container" class="hidden">
+                    <div class="bg-white rounded-2xl p-8 shadow-lg border border-purple-200">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-robot text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800">AI Analysis Results</h3>
+                                    <p class="text-gray-500 text-sm">Personalized advice based on your situation</p>
+                                </div>
+                            </div>
+                            <button onclick="copyAIAnalysis()" class="text-purple-500 hover:text-purple-700">
+                                <i class="far fa-copy text-xl"></i>
+                            </button>
+                        </div>
+
+                        <div class="mb-8">
+                            <div id="ai-analysis-content" class="ai-analysis-content text-gray-700 text-lg leading-relaxed"></div>
+                        </div>
+
+                        <!-- Suggested Categories -->
+                        <div class="mb-8">
+                            <h4 class="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                                <i class="fas fa-tags text-purple-500"></i>
+                                Suggested Focus Areas
+                            </h4>
+                            <div class="flex flex-wrap gap-2">
+                                <!-- Categories will be added by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Action Steps -->
+                        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6">
+                            <h4 class="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                                <i class="fas fa-list-check text-purple-500"></i>
+                                Recommended Action Plan
+                            </h4>
+                            <ul id="ai-action-steps" class="space-y-3 text-gray-600">
+                                <!-- Action steps will be added by JavaScript -->
+                            </ul>
+                        </div>
+
+                        <!-- Additional Options -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+                            <button onclick="saveAIAnalysis()" class="bg-white border border-purple-200 text-purple-600 hover:bg-purple-50 rounded-xl py-3 font-medium transition-all flex items-center justify-center gap-2">
+                                <i class="far fa-bookmark"></i>
+                                Save Analysis
+                            </button>
+                            <button onclick="generateMoreTips()" class="bg-white border border-purple-200 text-purple-600 hover:bg-purple-50 rounded-xl py-3 font-medium transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-lightbulb"></i>
+                                More Tips
+                            </button>
+                            <button onclick="resetAIAnalysis()" class="bg-white border border-purple-200 text-purple-600 hover:bg-purple-50 rounded-xl py-3 font-medium transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-redo"></i>
+                                New Analysis
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Prompts -->
+                <div class="mt-12">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Need Inspiration?</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white rounded-xl p-6 shadow border border-blue-100 hover:border-blue-300 cursor-pointer transition-all" onclick="useExamplePrompt(0)">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-briefcase text-blue-600"></i>
+                                </div>
+                                <h4 class="font-bold text-gray-700">Workplace</h4>
+                            </div>
+                            <p class="text-gray-600 text-sm">"I need to give feedback to a colleague without damaging our relationship..."</p>
+                        </div>
+                        <div class="bg-white rounded-xl p-6 shadow border border-pink-100 hover:border-pink-300 cursor-pointer transition-all" onclick="useExamplePrompt(1)">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-heart text-pink-600"></i>
+                                </div>
+                                <h4 class="font-bold text-gray-700">Dating</h4>
+                            </div>
+                            <p class="text-gray-600 text-sm">"I'm going on a second date and want to build deeper connection..."</p>
+                        </div>
+                        <div class="bg-white rounded-xl p-6 shadow border border-green-100 hover:border-green-300 cursor-pointer transition-all" onclick="useExamplePrompt(2)">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-users text-green-600"></i>
+                                </div>
+                                <h4 class="font-bold text-gray-700">Social Events</h4>
+                            </div>
+                            <p class="text-gray-600 text-sm">"I'm attending a party where I only know the host. How do I mingle naturally?"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Section Pages Template -->
+    <div id="section-template" class="page">
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Page Header will be filled by JavaScript -->
+            <div id="section-header" class="text-center mb-8">
+                <!-- Dynamic content -->
+            </div>
+
+            <!-- Skill Selection -->
+            <div class="bg-white rounded-2xl shadow-lg mb-8">
+                <div class="tip-card p-6 text-white rounded-t-2xl">
+                    <h2 class="text-2xl font-bold mb-1">Select Your Focus Area</h2>
+                    <p class="text-blue-100">Choose what skill you want to improve</p>
+                </div>
+                
+                <div class="p-6">
+                    <!-- AI Quick Access -->
+                    <div class="mb-6">
+                        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-robot text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">Need personalized advice?</p>
+                                        <p class="text-gray-600 text-sm">Try our AI Situation Analysis for custom tips</p>
+                                    </div>
+                                </div>
+                                <button onclick="navigateTo('ai-custom')" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all">
+                                    Try AI
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="skill-buttons-container">
+                        <!-- Skill buttons will be added by JavaScript -->
+                    </div>
+                    
+                    <!-- Tip Generator -->
+                    <div class="bg-blue-50 rounded-xl p-6 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <p class="text-sm text-blue-600 font-medium">Selected Focus:</p>
+                                <p id="selected-skill" class="font-semibold text-gray-700 text-lg">Not selected</p>
+                            </div>
+                            <button onclick="generateSectionTip()" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all">
+                                <i class="fas fa-magic mr-2"></i>Generate Tip
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Tip Display -->
+                    <div id="section-tip-display" class="bg-gradient-to-br from-blue-50 to-white border-2 border-dashed border-blue-200 rounded-xl p-8 flex items-center justify-center min-h-[300px]">
+                        <div id="section-tip-default" class="text-center fade-in">
+                            <div class="w-20 h-20 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-lightbulb text-blue-600 text-3xl"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-700 mb-2">Ready for Your Tip?</h3>
+                            <p class="text-gray-500">Select your focus area above, then click generate to receive personalized advice</p>
+                        </div>
+                        
+                        <div id="section-tip-template" style="display: none;" class="w-full fade-in">
+                            <div class="bg-white rounded-xl p-6 shadow-lg border border-blue-200">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                                            <i id="section-tip-icon" class="fas fa-lightbulb text-white text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <h3 id="section-tip-title" class="text-xl font-bold text-gray-800">Social Tip</h3>
+                                            <span id="section-tip-difficulty" class="text-xs text-white px-2 py-1 rounded-full">Medium</span>
+                                        </div>
+                                    </div>
+                                    <button onclick="likeSectionTip()" class="text-blue-400 hover:text-red-500">
+                                        <i id="section-like-icon" class="far fa-heart text-xl"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <p id="section-tip-content" class="text-gray-700 text-lg leading-relaxed mb-4"></p>
+                                    <div class="flex items-center text-blue-500 text-sm">
+                                        <i class="fas fa-quote-left text-blue-300 mr-2"></i>
+                                        <span>Psychology-backed advice</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-blue-50 rounded-lg p-4">
+                                    <h4 class="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                        <i class="fas fa-list-check text-blue-500"></i>
+                                        Action Steps
+                                    </h4>
+                                    <ul id="section-action-steps" class="space-y-2 text-gray-600">
+                                        <!-- Filled by JavaScript -->
+                                    </ul>
+                                </div>
+                                
+                                <!-- Tip Actions -->
+                                <div class="grid grid-cols-2 gap-3 mt-6">
+                                    <button onclick="saveSectionTip()" class="bg-blue-50 hover:bg-blue-100 rounded-lg py-2 font-medium transition-all border border-blue-200 flex items-center justify-center">
+                                        <i class="far fa-bookmark mr-2 text-blue-500"></i>Save Tip
+                                    </button>
+                                    <button onclick="copySectionTip()" class="bg-blue-50 hover:bg-blue-100 rounded-lg py-2 font-medium transition-all border border-blue-200 flex items-center justify-center">
+                                        <i class="far fa-copy mr-2 text-blue-500"></i>Copy
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips Gallery -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">All Tips</h2>
+                    <button onclick="navigateTo('ai-custom')" class="text-purple-600 hover:text-purple-700 font-medium flex items-center gap-2">
+                        <i class="fas fa-robot"></i>
+                        <span>Try AI Analysis</span>
+                    </button>
+                </div>
+                <div id="tips-gallery" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Tips will be added by JavaScript -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gradient-to-b from-blue-800 to-blue-900 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-lg font-bold mb-2">Social Tip Generator</p>
+            <p class="text-blue-200 mb-4">Practical advice for real-world social success</p>
+            <div class="flex justify-center space-x-4 mb-4">
+                <button onclick="navigateTo('ai-custom')" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all">
+                    <i class="fas fa-robot mr-2"></i>Try AI Analysis
+                </button>
+                <button onclick="navigateTo('home')" class="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-all">
+                    <i class="fas fa-home mr-2"></i>Back to Home
+                </button>
+            </div>
+            <p class="text-blue-400 text-sm">© 2025 Social Tip Generator. IIBM</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Navigation State
+        let currentPage = 'home';
+        let currentSection = null;
+        let currentSectionSkill = null;
+        
+        // Example prompts for AI analysis
+        const examplePrompts = [
+            "I need to give constructive feedback to a colleague at work. They've been missing deadlines, but I don't want to damage our working relationship or make them defensive. I want to approach this conversation professionally while maintaining a positive team dynamic. What specific phrases should I use and how should I structure the conversation?",
+            "I'm going on a second date with someone I really like. The first date went well, but I want to build a deeper connection this time. I'm nervous about asking meaningful questions without being too intense, and I want to show my authentic self while also being interesting. How can I create a comfortable atmosphere for both of us to open up?",
+            "I'm attending a networking event where I only know the host. I tend to feel awkward approaching groups of people already talking, and I struggle with small talk that doesn't feel shallow. I want to make genuine connections but don't know how to start conversations naturally or keep them flowing. What specific strategies can I use?"
+        ];
+
+        // API Configuration - Replace with your actual API key
+        const GEMINI_API_KEY = 'YOUR_API_KEY_HERE'; 
+        const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
+
+        // Complete tips database
+        const allTips = {
+            networking: {
+                title: "Networking Tips",
+                icon: "fa-handshake",
+                color: "blue",
+                description: "Build professional relationships and expand your network effectively",
+                skills: {
+                    conversation: [
+                        {
+                            text: "Ask 'What inspired you to get into your field?' It shows genuine interest.",
+                            difficulty: "Easy",
+                            icon: "fa-comments",
+                            actions: ["Use in your next networking event", "Practice with a colleague", "Note down responses"]
+                        },
+                        {
+                            text: "Prepare 2-3 interesting questions before attending any networking event.",
+                            difficulty: "Medium",
+                            icon: "fa-question-circle",
+                            actions: ["Research attendees beforehand", "Prepare industry-related questions", "Practice asking naturally"]
+                        },
+                        {
+                            text: "Find common ground by asking about recent industry developments or events.",
+                            difficulty: "Easy",
+                            icon: "fa-handshake",
+                            actions: ["Stay updated on industry news", "Ask about recent conferences", "Share your own insights"]
+                        }
+                    ],
+                    confidence: [
+                        {
+                            text: "Remember: everyone feels awkward at networking events. You're not alone.",
+                            difficulty: "Easy",
+                            icon: "fa-users",
+                            actions: ["Repeat as a mantra before events", "Observe others' body language", "Share this insight with a friend"]
+                        },
+                        {
+                            text: "Practice your introduction: 'I help [who] with [what] through [how].'",
+                            difficulty: "Medium",
+                            icon: "fa-user-check",
+                            actions: ["Write your introduction", "Practice in front of a mirror", "Record and review yourself"]
+                        },
+                        {
+                            text: "Set a goal of meeting just 3 new people instead of trying to meet everyone.",
+                            difficulty: "Easy",
+                            icon: "fa-bullseye",
+                            actions: ["Set realistic goals", "Focus on quality connections", "Celebrate small wins"]
+                        }
+                    ],
+                    focus: [
+                        {
+                            text: "Give each person your full attention - put away your phone completely.",
+                            difficulty: "Medium",
+                            icon: "fa-mobile-slash",
+                            actions: ["Turn phone to silent", "Make eye contact", "Practice active listening"]
+                        },
+                        {
+                            text: "Listen actively: repeat back key points to show you're engaged.",
+                            difficulty: "Hard",
+                            icon: "fa-ear-listen",
+                            actions: ["Practice with friends first", "Focus on understanding", "Use phrases like 'So what I hear you saying is...'"]
+                        },
+                        {
+                            text: "Focus on quality over quantity of connections.",
+                            difficulty: "Medium",
+                            icon: "fa-star",
+                            actions: ["Set connection quality goals", "Follow up meaningfully", "Nurture existing connections"]
+                        }
+                    ],
+                    selfimprove: [
+                        {
+                            text: "Join one professional group related to your field this month.",
+                            difficulty: "Hard",
+                            icon: "fa-user-plus",
+                            actions: ["Research local groups", "Attend one meeting", "Introduce yourself to 3 people"]
+                        },
+                        {
+                            text: "Read one industry-related article daily to have conversation starters.",
+                            difficulty: "Medium",
+                            icon: "fa-newspaper",
+                            actions: ["Subscribe to industry newsletters", "Set daily reading time", "Share interesting finds"]
+                        },
+                        {
+                            text: "Ask for one introduction per month to expand your network.",
+                            difficulty: "Hard",
+                            icon: "fa-network-wired",
+                            actions: ["Identify valuable connections", "Make specific requests", "Offer value in return"]
+                        }
+                    ]
+                }
+            },
+            dating: {
+                title: "Dating Tips",
+                icon: "fa-heart",
+                color: "pink",
+                description: "Build meaningful connections and improve your dating experiences",
+                skills: {
+                    conversation: [
+                        {
+                            text: "Ask open-ended questions about passions, dreams, or interesting experiences.",
+                            difficulty: "Medium",
+                            icon: "fa-heart",
+                            actions: ["Prepare 3-4 open-ended questions", "Listen more than you speak", "Follow up with related questions"]
+                        },
+                        {
+                            text: "Share stories instead of facts - stories are more memorable and engaging.",
+                            difficulty: "Medium",
+                            icon: "fa-book-open",
+                            actions: ["Prepare 2-3 interesting stories", "Practice storytelling", "Keep stories concise"]
+                        },
+                        {
+                            text: "Find balance between talking and listening (aim for 50/50).",
+                            difficulty: "Easy",
+                            icon: "fa-scale-balanced",
+                            actions: ["Monitor conversation balance", "Practice active silence", "Ask follow-up questions"]
+                        }
+                    ],
+                    confidence: [
+                        {
+                            text: "Remember that dating is about finding mutual compatibility, not being 'perfect'.",
+                            difficulty: "Easy",
+                            icon: "fa-star",
+                            actions: ["Write down your positive qualities", "Focus on enjoying the moment", "Practice self-acceptance"]
+                        },
+                        {
+                            text: "Focus on being genuinely interested rather than trying to be interesting.",
+                            difficulty: "Medium",
+                            icon: "fa-eye",
+                            actions: ["Practice curiosity", "Ask meaningful questions", "Listen without agenda"]
+                        },
+                        {
+                            text: "Embrace your authentic self - the right person will appreciate you for you.",
+                            difficulty: "Hard",
+                            icon: "fa-user",
+                            actions: ["Identify your core values", "Practice vulnerability", "Be honest about interests"]
+                        }
+                    ],
+                    focus: [
+                        {
+                            text: "Be present in the moment instead of worrying about what comes next.",
+                            difficulty: "Hard",
+                            icon: "fa-hourglass",
+                            actions: ["Practice mindfulness", "Put away distractions", "Focus on current conversation"]
+                        },
+                        {
+                            text: "Listen to understand, not just to respond.",
+                            difficulty: "Medium",
+                            icon: "fa-ear-listen",
+                            actions: ["Practice active listening", "Ask clarifying questions", "Repeat key points"]
+                        },
+                        {
+                            text: "Focus on enjoying the experience rather than achieving an outcome.",
+                            difficulty: "Hard",
+                            icon: "fa-face-smile",
+                            actions: ["Set intention to have fun", "Release expectations", "Celebrate the experience"]
+                        }
+                    ],
+                    selfimprove: [
+                        {
+                            text: "Reflect after each date: What went well? What would you do differently?",
+                            difficulty: "Easy",
+                            icon: "fa-clipboard-check",
+                            actions: ["Keep a dating journal", "Note what you learned", "Plan improvements"]
+                        },
+                        {
+                            text: "Develop your own interests and life outside dating.",
+                            difficulty: "Medium",
+                            icon: "fa-person-hiking",
+                            actions: ["Pursue hobbies", "Maintain friendships", "Set personal goals"]
+                        },
+                        {
+                            text: "Practice vulnerability by sharing appropriate personal stories.",
+                            difficulty: "Hard",
+                            icon: "fa-heart-circle-check",
+                            actions: ["Share gradually", "Gauge comfort levels", "Be authentic"]
+                        }
+                    ]
+                }
+            },
+            communication: {
+                title: "Communication Tips",
+                icon: "fa-comments",
+                color: "green",
+                description: "Enhance your speaking, listening, and interpersonal communication skills",
+                skills: {
+                    conversation: [
+                        {
+                            text: "Use the PREP method when you speak: Point – Reason – Example – Point.",
+                            difficulty: "Easy",
+                            icon: "fa-comments",
+                            actions: ["Jot down PREP notes before talking", "Practise with a friend", "Use it in your next call"]
+                        },
+                        {
+                            text: "Summarise what the other person just said before you reply.",
+                            difficulty: "Easy",
+                            icon: "fa-ear-listen",
+                            actions: ["Say 'So what I'm hearing is…'", "Ask if you got it right", "Then give your view"]
+                        },
+                        {
+                            text: "Ask open follow-ups: 'What made you feel that way?' or 'How did that work out?'",
+                            difficulty: "Medium",
+                            icon: "fa-question-circle",
+                            actions: ["Keep a list of open questions", "Use one in every chat today", "Notice how talks deepen"]
+                        }
+                    ],
+                    confidence: [
+                        {
+                            text: "Rehearse your first sentence out loud before you enter the room.",
+                            difficulty: "Easy",
+                            icon: "fa-microphone",
+                            actions: ["Say it to your mirror", "Record it on your phone", "Play it back once and smile"]
+                        },
+                        {
+                            text: "Stand tall for two minutes (power-pose)—it lowers stress hormones.",
+                            difficulty: "Easy",
+                            icon: "fa-person",
+                            actions: ["Set a 2-minute timer", "Do it in private", "Walk in straight afterwards"]
+                        },
+                        {
+                            text: "Speak within the first 10% of any meeting to beat the 'quiet spiral'.",
+                            difficulty: "Medium",
+                            icon: "fa-bullhorn",
+                            actions: ["Prepare one short comment", "Raise your hand early", "Keep it under 20 seconds"]
+                        }
+                    ],
+                    focus: [
+                        {
+                            text: "Put your phone face-down or in your bag while talking.",
+                            difficulty: "Easy",
+                            icon: "fa-mobile-slash",
+                            actions: ["Make this a rule", "Tell the other person why", "Feel the difference in attention"]
+                        },
+                        {
+                            text: "Take a brief pause before you answer a hard question—three seconds of silence is fine.",
+                            difficulty: "Medium",
+                            icon: "fa-pause",
+                            actions: ["Count 'one-two-three' silently", "Breathe once", "Then reply"]
+                        },
+                        {
+                            text: "Keep a single notebook for every conversation; jot keywords instead of multitasking.",
+                            difficulty: "Medium",
+                            icon: "fa-note-sticky",
+                            actions: ["Open the note app", "Write one line per idea", "Review it at the end of the day"]
+                        }
+                    ],
+                    selfimprove: [
+                        {
+                            text: "Record yourself once a week (audio or video) and pick one small thing to improve.",
+                            difficulty: "Hard",
+                            icon: "fa-video",
+                            actions: ["Use your phone voice-memo", "Listen for filler words", "Work on just that next week"]
+                        },
+                        {
+                            text: "Ask for one concrete communication tip from someone you trust each month.",
+                            difficulty: "Medium",
+                            icon: "fa-comment-medical",
+                            actions: ["Text them now", "Ask 'What's one thing I could do better?'", "Thank them and apply it"]
+                        },
+                        {
+                            text: "Join a low-stakes group (book club, Toastmasters, language exchange) to practise weekly.",
+                            difficulty: "Hard",
+                            icon: "fa-people-group",
+                            actions: ["Search Meetup this week", "Attend one session", "Speak at least once"]
+                        }
+                    ]
+                }
+            },
+            socialmedia: {
+                title: "Social Media Tips",
+                icon: "fa-share-alt",
+                color: "purple",
+                description: "Navigate digital platforms effectively and build your online presence",
+                skills: {
+                    conversation: [
+                        {
+                            text: "Engage meaningfully: Comment with questions or personal insights.",
+                            difficulty: "Easy",
+                            icon: "fa-comment",
+                            actions: ["Read posts fully before commenting", "Add value to discussions", "Ask thoughtful questions"]
+                        },
+                        {
+                            text: "Share others' content with thoughtful commentary.",
+                            difficulty: "Medium",
+                            icon: "fa-share",
+                            actions: ["Add your perspective", "Tag original creators", "Explain why you're sharing"]
+                        },
+                        {
+                            text: "Use stories/polls to create interactive conversations.",
+                            difficulty: "Easy",
+                            icon: "fa-chart-simple",
+                            actions: ["Create engaging polls", "Ask open-ended questions", "Respond to interactions"]
+                        }
+                    ],
+                    confidence: [
+                        {
+                            text: "Share your authentic self, not just highlights.",
+                            difficulty: "Medium",
+                            icon: "fa-share-alt",
+                            actions: ["Post one authentic story this week", "Engage genuinely with followers", "Limit comparison with others"]
+                        },
+                        {
+                            text: "Remember that likes/follows don't determine your worth.",
+                            difficulty: "Hard",
+                            icon: "fa-heart",
+                            actions: ["Set usage limits", "Focus on real connections", "Practice digital detox"]
+                        },
+                        {
+                            text: "Unfollow accounts that make you feel inadequate.",
+                            difficulty: "Easy",
+                            icon: "fa-user-minus",
+                            actions: ["Curate your feed", "Follow inspiring accounts", "Regularly review follows"]
+                        }
+                    ],
+                    focus: [
+                        {
+                            text: "Set specific time limits for social media daily.",
+                            difficulty: "Medium",
+                            icon: "fa-hourglass",
+                            actions: ["Use app timers", "Schedule social media time", "Stick to limits"]
+                        },
+                        {
+                            text: "Curate your feed to include educational/positive content.",
+                            difficulty: "Easy",
+                            icon: "fa-filter",
+                            actions: ["Unfollow negative accounts", "Follow educational pages", "Create topic lists"]
+                        },
+                        {
+                            text: "Practice digital minimalism - quality over quantity.",
+                            difficulty: "Hard",
+                            icon: "fa-minimize",
+                            actions: ["Reduce app usage", "Focus on meaningful interactions", "Set content goals"]
+                        }
+                    ],
+                    selfimprove: [
+                        {
+                            text: "Learn one new digital skill each month.",
+                            difficulty: "Medium",
+                            icon: "fa-laptop-code",
+                            actions: ["Take online courses", "Practice new tools", "Share learnings"]
+                        },
+                        {
+                            text: "Use social media to build genuine connections, not just accumulate followers.",
+                            difficulty: "Hard",
+                            icon: "fa-user-group",
+                            actions: ["Engage personally", "Initiate meaningful conversations", "Meet offline when possible"]
+                        },
+                        {
+                            text: "Create content that adds value to others.",
+                            difficulty: "Medium",
+                            icon: "fa-pen-nib",
+                            actions: ["Identify your expertise", "Share helpful information", "Respond to questions"]
+                        }
+                    ]
+                }
+            },
+            learning: {
+                title: "Learning Tips",
+                icon: "fa-graduation-cap",
+                color: "yellow",
+                description: "Develop effective learning habits and knowledge retention strategies",
+                skills: {
+                    conversation: [
+                        {
+                            text: "Join study groups or discussion forums related to your interests.",
+                            difficulty: "Easy",
+                            icon: "fa-graduation-cap",
+                            actions: ["Find relevant groups", "Participate actively", "Share your knowledge"]
+                        },
+                        {
+                            text: "Ask 'dumb questions' - they often lead to the best learning.",
+                            difficulty: "Medium",
+                            icon: "fa-question",
+                            actions: ["Overcome fear of asking", "Prepare questions in advance", "Learn from answers"]
+                        },
+                        {
+                            text: "Explain concepts to others to deepen your own understanding.",
+                            difficulty: "Hard",
+                            icon: "fa-chalkboard-teacher",
+                            actions: ["Find study partners", "Practice teaching", "Get feedback"]
+                        }
+                    ],
+                    confidence: [
+                        {
+                            text: "Embrace the beginner's mindset - it's okay not to know everything.",
+                            difficulty: "Easy",
+                            icon: "fa-seedling",
+                            actions: ["Practice curiosity", "Ask for help", "Celebrate small progress"]
+                        },
+                        {
+                            text: "Celebrate small learning milestones along the way.",
+                            difficulty: "Easy",
+                            icon: "fa-trophy",
+                            actions: ["Set milestone goals", "Reward achievements", "Track progress"]
+                        },
+                        {
+                            text: "Compare yourself to your past self, not to experts.",
+                            difficulty: "Medium",
+                            icon: "fa-chart-line",
+                            actions: ["Keep learning journal", "Note improvements", "Focus on growth"]
+                        }
+                    ],
+                    focus: [
+                        {
+                            text: "Use the Pomodoro Technique: 25 minutes focused, 5 minutes break.",
+                            difficulty: "Easy",
+                            icon: "fa-hourglass",
+                            actions: ["Set a timer for 25 minutes", "Eliminate distractions", "Take proper 5-minute breaks"]
+                        },
+                        {
+                            text: "Create a dedicated learning space free from distractions.",
+                            difficulty: "Medium",
+                            icon: "fa-laptop-house",
+                            actions: ["Designate study area", "Remove distractions", "Keep space organized"]
+                        },
+                        {
+                            text: "Practice single-tasking - focus on one topic at a time.",
+                            difficulty: "Hard",
+                            icon: "fa-bullseye",
+                            actions: ["Prioritize topics", "Avoid multitasking", "Complete one thing before starting another"]
+                        }
+                    ],
+                    selfimprove: [
+                        {
+                            text: "Reflect weekly: What did I learn? What questions do I still have?",
+                            difficulty: "Easy",
+                            icon: "fa-clipboard-check",
+                            actions: ["Schedule weekly review", "Journal learnings", "Plan next steps"]
+                        },
+                        {
+                            text: "Teach what you're learning to someone else.",
+                            difficulty: "Medium",
+                            icon: "fa-chalkboard-user",
+                            actions: ["Find willing listener", "Prepare simple explanations", "Get feedback"]
+                        },
+                        {
+                            text: "Mix different learning methods: reading, videos, practice, teaching.",
+                            difficulty: "Hard",
+                            icon: "fa-layer-group",
+                            actions: ["Vary study methods", "Find what works best", "Combine approaches"]
+                        }
+                    ]
+                }
+            },
+            family: {
+                title: "Family Tips",
+                icon: "fa-home",
+                color: "indigo",
+                description: "Strengthen family bonds and improve communication at home",
+                skills: {
+                    conversation: [
+                        {
+                            text: "Practice active listening with family members - give them your full attention.",
+                            difficulty: "Medium",
+                            icon: "fa-ear-listen",
+                            actions: ["Put away devices during conversations", "Make eye contact", "Ask follow-up questions"]
+                        },
+                        {
+                            text: "Use 'I feel' statements instead of 'You always' accusations.",
+                            difficulty: "Hard",
+                            icon: "fa-comment",
+                            actions: ["Practice phrasing", "Focus on your feelings", "Avoid blame language"]
+                        },
+                        {
+                            text: "Schedule regular family time without distractions.",
+                            difficulty: "Easy",
+                            icon: "fa-calendar-days",
+                            actions: ["Set weekly family time", "Plan activities together", "Ban devices during"]
+                        }
+                    ],
+                    confidence: [
+                        {
+                            text: "Set healthy boundaries while maintaining love and respect.",
+                            difficulty: "Hard",
+                            icon: "fa-shield",
+                            actions: ["Identify your boundaries", "Communicate clearly", "Enforce consistently"]
+                        },
+                        {
+                            text: "Express appreciation for family members regularly.",
+                            difficulty: "Easy",
+                            icon: "fa-heart",
+                            actions: ["Say thank you often", "Note specific things you appreciate", "Show gratitude"]
+                        },
+                        {
+                            text: "Be authentic - you don't need to pretend with family.",
+                            difficulty: "Medium",
+                            icon: "fa-user",
+                            actions: ["Share real feelings", "Be honest about needs", "Show vulnerability"]
+                        }
+                    ],
+                    focus: [
+                        {
+                            text: "Be fully present during family interactions - no multitasking.",
+                            difficulty: "Medium",
+                            icon: "fa-mobile-slash",
+                            actions: ["Put phone away", "Make eye contact", "Engage completely"]
+                        },
+                        {
+                            text: "Listen to understand family perspectives, not just to respond.",
+                            difficulty: "Hard",
+                            icon: "fa-ear-listen",
+                            actions: ["Practice empathy", "Ask clarifying questions", "Validate feelings"]
+                        },
+                        {
+                            text: "Focus on solutions rather than dwelling on problems.",
+                            difficulty: "Medium",
+                            icon: "fa-lightbulb",
+                            actions: ["Identify issues clearly", "Brainstorm solutions together", "Focus on forward progress"]
+                        }
+                    ],
+                    selfimprove: [
+                        {
+                            text: "Practice patience and understanding with family differences.",
+                            difficulty: "Hard",
+                            icon: "fa-hourglass",
+                            actions: ["Take deep breaths when frustrated", "Practice empathy", "Accept differences"]
+                        },
+                        {
+                            text: "Learn family communication patterns and adapt positively.",
+                            difficulty: "Medium",
+                            icon: "fa-comments",
+                            actions: ["Observe communication styles", "Adapt your approach", "Improve over time"]
+                        },
+                        {
+                            text: "Create family traditions that strengthen bonds.",
+                            difficulty: "Easy",
+                            icon: "fa-people-group",
+                            actions: ["Start simple traditions", "Involve everyone", "Make them regular"]
+                        }
+                    ]
+                }
+            },
+            stress: {
+                title: "Stress Management Tips",
+                icon: "fa-brain",
+                color: "red",
+                description: "Learn techniques to manage stress and maintain emotional balance",
+                skills: {
+                    conversation: [
+                        {
+                            text: "Use 'I' statements to express stress without blaming others.",
+                            difficulty: "Medium",
+                            icon: "fa-comment-medical",
+                            actions: ["Practice saying 'I feel stressed when...'", "Focus on your feelings, not others' actions", "Use calm, clear language"]
+                        },
+                        {
+                            text: "Ask for help clearly: 'I'm feeling overwhelmed, could you assist with...?'",
+                            difficulty: "Easy",
+                            icon: "fa-handshake",
+                            actions: ["Identify specific needs", "Choose the right person to ask", "Be direct but polite"]
+                        },
+                        {
+                            text: "Set communication boundaries: 'I need some quiet time to recharge.'",
+                            difficulty: "Hard",
+                            icon: "fa-volume-mute",
+                            actions: ["Identify your limits", "Communicate them clearly", "Respect others' boundaries too"]
+                        }
+                    ],
+                    confidence: [
+                        {
+                            text: "Recognize stress signals early and take proactive breaks.",
+                            difficulty: "Easy",
+                            icon: "fa-bell",
+                            actions: ["Learn your personal stress signs", "Schedule regular breaks", "Practice deep breathing"]
+                        },
+                        {
+                            text: "Practice self-compassion - it's okay to feel stressed sometimes.",
+                            difficulty: "Medium",
+                            icon: "fa-heart-circle-check",
+                            actions: ["Notice self-critical thoughts", "Replace with kind words", "Treat yourself like a friend"]
+                        },
+                        {
+                            text: "Build resilience by celebrating small wins against stress.",
+                            difficulty: "Easy",
+                            icon: "fa-trophy",
+                            actions: ["Acknowledge stress management successes", "Keep a 'win' journal", "Share progress with someone"]
+                        }
+                    ],
+                    focus: [
+                        {
+                            text: "Practice the 5-4-3-2-1 grounding technique when overwhelmed.",
+                            difficulty: "Easy",
+                            icon: "fa-mountain",
+                            actions: ["Notice 5 things you can see", "4 things you can touch", "3 things you can hear", "2 things you can smell", "1 thing you can taste"]
+                        },
+                        {
+                            text: "Single-task instead of multitasking to reduce cognitive load.",
+                            difficulty: "Medium",
+                            icon: "fa-bullseye",
+                            actions: ["Choose one task at a time", "Set time limits for focus", "Avoid switching between tasks"]
+                        },
+                        {
+                            text: "Practice mindful breathing for 2 minutes to regain focus.",
+                            difficulty: "Easy",
+                            icon: "fa-wind",
+                            actions: ["Find a quiet space", "Focus on your breath", "Count breaths to stay present"]
+                        }
+                    ],
+                    selfimprove: [
+                        {
+                            text: "Establish a daily stress-relief routine, even just 5 minutes.",
+                            difficulty: "Medium",
+                            icon: "fa-calendar-check",
+                            actions: ["Choose calming activities", "Schedule them daily", "Track consistency"]
+                        },
+                        {
+                            text: "Learn to identify and challenge stress-inducing thoughts.",
+                            difficulty: "Hard",
+                            icon: "fa-brain",
+                            actions: ["Notice automatic negative thoughts", "Question their validity", "Replace with balanced thoughts"]
+                        },
+                        {
+                            text: "Develop a personalized stress management toolkit.",
+                            difficulty: "Medium",
+                            icon: "fa-toolbox",
+                            actions: ["List activities that calm you", "Practice them regularly", "Use when needed"]
+                        }
+                    ]
+                }
+            },
+            personality: {
+                title: "Personality Development Tips",
+                icon: "fa-user-plus",
+                color: "teal",
+                description: "Develop your personal charisma, confidence, and social presence",
+                skills: {
+                    conversation: [
+                        {
+                            text: "Practice speaking with varied tone and pace to become more engaging.",
+                            difficulty: "Medium",
+                            icon: "fa-microphone-lines",
+                            actions: ["Record yourself speaking", "Vary your speaking speed", "Practice emotional inflection"]
+                        },
+                        {
+                            text: "Develop active listening skills by summarizing what others say before responding.",
+                            difficulty: "Medium",
+                            icon: "fa-ear-listen",
+                            actions: ["Practice summarizing in conversations", "Ask clarifying questions", "Focus on understanding, not just hearing"]
+                        },
+                        {
+                            text: "Learn to articulate thoughts clearly by practicing the '3-point method': Introduction, Explanation, Summary.",
+                            difficulty: "Hard",
+                            icon: "fa-comments",
+                            actions: ["Structure thoughts before speaking", "Practice with simple topics", "Get feedback on clarity"]
+                        }
+                    ],
+                    confidence: [
+                        {
+                            text: "Practice power posing for 2 minutes daily to build presence and confidence.",
+                            difficulty: "Easy",
+                            icon: "fa-person-rays",
+                            actions: ["Stand in confident postures", "Practice in front of a mirror", "Notice body language changes"]
+                        },
+                        {
+                            text: "Develop a growth mindset by reframing challenges as opportunities.",
+                            difficulty: "Medium",
+                            icon: "fa-brain",
+                            actions: ["Replace 'I can't' with 'I can learn'", "Celebrate effort over results", "View feedback as growth"]
+                        },
+                        {
+                            text: "Build self-awareness through daily journaling about interactions and feelings.",
+                            difficulty: "Easy",
+                            icon: "fa-book-journal-whills",
+                            actions: ["Journal daily for 5 minutes", "Reflect on social interactions", "Note patterns in communication"]
+                        }
+                    ],
+                    focus: [
+                        {
+                            text: "Practice mindfulness during conversations to stay present and engaged.",
+                            difficulty: "Hard",
+                            icon: "fa-spa",
+                            actions: ["Focus on breath during conversations", "Notice when mind wanders", "Gently bring attention back"]
+                        },
+                        {
+                            text: "Develop mental clarity by organizing thoughts before important conversations.",
+                            difficulty: "Medium",
+                            icon: "fa-lightbulb",
+                            actions: ["Outline key points beforehand", "Practice mental organization", "Use mind mapping techniques"]
+                        },
+                        {
+                            text: "Learn to filter distractions and maintain focus during complex discussions.",
+                            difficulty: "Hard",
+                            icon: "fa-filter",
+                            actions: ["Practice in noisy environments", "Set conversation priorities", "Use focus techniques like Pomodoro"]
+                        }
+                    ],
+                    selfimprove: [
+                        {
+                            text: "Create a personal development plan with specific communication goals.",
+                            difficulty: "Medium",
+                            icon: "fa-road",
+                            actions: ["Identify 3 communication areas to improve", "Set SMART goals", "Track progress weekly"]
+                        },
+                        {
+                            text: "Seek diverse perspectives to broaden your understanding and empathy.",
+                            difficulty: "Easy",
+                            icon: "fa-globe",
+                            actions: ["Talk to people from different backgrounds", "Read diverse viewpoints", "Practice perspective-taking"]
+                        },
+                        {
+                            text: "Develop emotional intelligence by labeling and managing your emotions effectively.",
+                            difficulty: "Hard",
+                            icon: "fa-heart-pulse",
+                            actions: ["Practice emotion naming", "Learn emotional regulation techniques", "Observe emotions without judgment"]
+                        }
+                    ]
+                }
+            }
+        };
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('active');
+        }
+
+        // Navigation functions
+        function navigateTo(page) {
+            // Close mobile menu if open
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenu) {
+                mobileMenu.classList.remove('active');
+            }
+            
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show active page
+            document.querySelectorAll('.page').forEach(pageEl => {
+                pageEl.classList.remove('active');
+            });
+            
+            // Update current page
+            currentPage = page;
+            
+            if (page === 'home') {
+                document.getElementById('home-page').classList.add('active');
+                document.querySelector(`[onclick="navigateTo('home')"]`).classList.add('active');
+            } else if (page === 'ai-custom') {
+                document.getElementById('ai-custom-page').classList.add('active');
+                document.querySelector(`[onclick="navigateTo('ai-custom')"]`).classList.add('active');
+                // Initialize character counter
+                const textarea = document.getElementById('ai-situation-input');
+                const charCount = document.getElementById('char-count');
+                if (textarea && charCount) {
+                    textarea.addEventListener('input', function() {
+                        charCount.textContent = `${this.value.length}/1000`;
+                    });
+                }
+            } else {
+                // Show section template
+                const sectionTemplate = document.getElementById('section-template');
+                sectionTemplate.classList.add('active');
+                const navButton = document.querySelector(`[onclick="navigateTo('${page}')"]`);
+                if (navButton) {
+                    navButton.classList.add('active');
+                }
+                
+                // Load section data
+                currentSection = page;
+                loadSectionData(page);
+            }
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function loadSectionData(section) {
+            const sectionData = allTips[section];
+            if (!sectionData) return;
+            
+            // Update header
+            const header = document.getElementById('section-header');
+            const colorClasses = {
+                blue: 'bg-blue-100 text-blue-600',
+                pink: 'bg-pink-100 text-pink-600',
+                green: 'bg-green-100 text-green-600',
+                purple: 'bg-purple-100 text-purple-600',
+                yellow: 'bg-yellow-100 text-yellow-600',
+                indigo: 'bg-indigo-100 text-indigo-600',
+                red: 'bg-red-100 text-red-600',
+                teal: 'bg-teal-100 text-teal-600'
+            };
+            
+            const colorClass = colorClasses[sectionData.color] || colorClasses.blue;
+            
+            header.innerHTML = `
+                <div class="inline-block p-4 ${colorClass.split(' ')[0]} rounded-2xl mb-4">
+                    <i class="fas ${sectionData.icon} ${colorClass.split(' ')[1]} text-4xl"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-800 mb-2">${sectionData.title}</h1>
+                <p class="text-gray-600 text-lg">${sectionData.description}</p>
+            `;
+            
+            // Update skill buttons
+            const skillsContainer = document.getElementById('skill-buttons-container');
+            const skillIcons = {
+                conversation: 'fa-comments',
+                confidence: 'fa-user-check',
+                focus: 'fa-bullseye',
+                selfimprove: 'fa-chart-line'
+            };
+            
+            const skillNames = {
+                conversation: 'Conversation',
+                confidence: 'Confidence',
+                focus: 'Focus',
+                selfimprove: 'Self Growth'
+            };
+            
+            skillsContainer.innerHTML = Object.keys(sectionData.skills).map(skill => `
+                <button onclick="selectSectionSkill('${skill}')" class="skill-btn bg-blue-50 hover:bg-blue-100 rounded-xl p-4 text-center border border-blue-100 transition-all">
+                    <i class="fas ${skillIcons[skill]} ${colorClass.split(' ')[1]} text-2xl mb-2"></i>
+                    <p class="font-medium text-gray-700">${skillNames[skill]}</p>
+                </button>
+            `).join('');
+            
+            // Reset tip display
+            document.getElementById('section-tip-default').style.display = 'block';
+            document.getElementById('section-tip-template').style.display = 'none';
+            document.getElementById('selected-skill').textContent = 'Not selected';
+            currentSectionSkill = null;
+            
+            // Load tips gallery
+            const tipsGallery = document.getElementById('tips-gallery');
+            let allTipsHTML = '';
+            
+            Object.entries(sectionData.skills).forEach(([skill, tips]) => {
+                tips.forEach((tip, index) => {
+                    const difficultyClass = tip.difficulty === 'Easy' ? 'difficulty-easy' : 
+                                          tip.difficulty === 'Medium' ? 'difficulty-medium' : 
+                                          'difficulty-hard';
+                    allTipsHTML += `
+                        <div class="bg-white rounded-xl p-6 shadow-lg border border-blue-100">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-xs font-medium text-white px-2 py-1 rounded-full ${difficultyClass}">${tip.difficulty}</span>
+                                <button onclick="likeGalleryTip(this)" class="text-blue-400 hover:text-red-500">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+                            <p class="text-gray-700 mb-4">${tip.text}</p>
+                            <button onclick="useThisSectionTip('${skill}', ${index})" class="w-full bg-blue-50 ${colorClass.split(' ')[1]} font-medium py-2 rounded-lg hover:bg-blue-100 transition-all">
+                                Use This Tip
+                            </button>
+                        </div>
+                    `;
+                });
+            });
+            
+            tipsGallery.innerHTML = allTipsHTML;
+            
+            // Select first skill by default
+            if (Object.keys(sectionData.skills).length > 0) {
+                selectSectionSkill(Object.keys(sectionData.skills)[0]);
+            }
+        }
+
+        function selectSectionSkill(skill) {
+            currentSectionSkill = skill;
+            
+            // Update button styles
+            const buttons = document.querySelectorAll('#skill-buttons-container .skill-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('active-skill');
+                btn.querySelector('p').classList.remove('text-white');
+                btn.querySelector('p').classList.add('text-gray-700');
+            });
+            
+            const selectedBtn = document.querySelector(`[onclick="selectSectionSkill('${skill}')"]`);
+            if (selectedBtn) {
+                selectedBtn.classList.add('active-skill');
+                selectedBtn.querySelector('p').classList.remove('text-gray-700');
+                selectedBtn.querySelector('p').classList.add('text-white');
+            }
+            
+            // Update display
+            const skillNames = {
+                conversation: 'Conversation',
+                confidence: 'Confidence',
+                focus: 'Focus',
+                selfimprove: 'Self Growth'
+            };
+            document.getElementById('selected-skill').textContent = skillNames[skill];
+        }
+
+        function generateSectionTip() {
+            if (!currentSection || !currentSectionSkill) {
+                alert('Please select a focus area first.');
+                return;
+            }
+
+            const sectionData = allTips[currentSection];
+            if (!sectionData) return;
+
+            const skillTips = sectionData.skills[currentSectionSkill];
+            if (!skillTips || skillTips.length === 0) {
+                alert('No tips available for this focus area.');
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * skillTips.length);
+            showSectionTip(skillTips[randomIndex]);
+        }
+
+        function showSectionTip(tip) {
+            // Show tip template
+            document.getElementById('section-tip-default').style.display = 'none';
+            const tipTemplate = document.getElementById('section-tip-template');
+            tipTemplate.style.display = 'block';
+
+            // Fill tip data
+            document.getElementById('section-tip-icon').className = `fas ${tip.icon} text-white text-xl`;
+            document.getElementById('section-tip-content').textContent = tip.text;
+            document.getElementById('section-tip-difficulty').textContent = tip.difficulty;
+            
+            const difficultyClass = tip.difficulty === 'Easy' ? 'difficulty-easy' : 
+                                  tip.difficulty === 'Medium' ? 'difficulty-medium' : 
+                                  'difficulty-hard';
+            document.getElementById('section-tip-difficulty').className = `text-xs text-white px-2 py-1 rounded-full ${difficultyClass}`;
+
+            // Fill action steps
+            const actionSteps = document.getElementById('section-action-steps');
+            actionSteps.innerHTML = tip.actions.map((action, index) => `
+                <li class="flex items-start gap-2">
+                    <div class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
+                        <span class="text-blue-600 text-xs font-bold">${index + 1}</span>
+                    </div>
+                    <span>${action}</span>
+                </li>
+            `).join('');
+            
+            // Reset like button
+            document.getElementById('section-like-icon').className = 'far fa-heart text-xl';
+        }
+
+        function useThisSectionTip(skill, index) {
+            currentSectionSkill = skill;
+            selectSectionSkill(skill);
+            
+            const sectionData = allTips[currentSection];
+            if (!sectionData) return;
+
+            const skillTips = sectionData.skills[skill];
+            if (!skillTips || !skillTips[index]) return;
+
+            showSectionTip(skillTips[index]);
+        }
+
+        function likeSectionTip() {
+            const likeIcon = document.getElementById('section-like-icon');
+            
+            if (likeIcon.classList.contains('far')) {
+                likeIcon.classList.remove('far');
+                likeIcon.classList.add('fas', 'text-red-500');
+            } else {
+                likeIcon.classList.remove('fas', 'text-red-500');
+                likeIcon.classList.add('far');
+            }
+        }
+
+        function likeGalleryTip(button) {
+            const icon = button.querySelector('i');
+            
+            if (icon.classList.contains('far')) {
+                icon.classList.remove('far');
+                icon.classList.add('fas', 'text-red-500');
+            } else {
+                icon.classList.remove('fas', 'text-red-500');
+                icon.classList.add('far');
+            }
+        }
+
+        function saveSectionTip() {
+            const tipText = document.getElementById('section-tip-content')?.textContent;
+
+            if (!tipText || tipText.includes('Ready for Your Tip?')) {
+                alert('Please generate a tip first.');
+                return;
+            }
+
+            alert('Tip saved to favorites!');
+        }
+
+        function copySectionTip() {
+            const tipText = document.getElementById('section-tip-content')?.textContent;
+
+            if (!tipText || tipText.includes('Ready for Your Tip?')) {
+                alert('Please generate a tip first.');
+                return;
+            }
+
+            navigator.clipboard.writeText(tipText).then(() => {
+                alert('Tip copied to clipboard!');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = tipText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Tip copied to clipboard!');
+            });
+        }
+
+        // AI Analysis Functions
+        async function analyzeWithGemini() {
+            const userInput = document.getElementById('ai-situation-input').value.trim();
+            
+            if (!userInput) {
+                alert("Please describe your social situation first.");
+                return;
+            }
+
+            if (userInput.length < 20) {
+                alert("Please provide more details about your situation (at least 20 characters).");
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('ai-loading').classList.remove('hidden');
+            document.getElementById('ai-analysis-container').classList.add('hidden');
+
+            // Check if API key is set
+            if (GEMINI_API_KEY === 'YOUR_API_KEY_HERE') {
+                // Simulate AI response for demonstration
+                setTimeout(() => {
+                    simulateAIResponse(userInput);
+                    document.getElementById('ai-loading').classList.add('hidden');
+                    document.getElementById('ai-analysis-container').classList.remove('hidden');
+                }, 1500);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `You are a social skills expert and psychologist. Analyze this social situation and provide specific, actionable advice. Format your response with these sections:
+1. Analysis: Briefly analyze what's happening (2-3 sentences)
+2. Recommended Action Plan: 3-5 specific, actionable steps
+3. Suggested Focus Areas: 2-3 relevant categories from networking, dating, communication, socialmedia, learning, family, stress, personality
+4. Key Phrases to Use: 2-3 exact phrases the person can use
+5. Common Mistakes to Avoid: 2-3 things to watch out for
+
+Situation: ${userInput}
+
+Make the advice practical and empathetic.`
+                            }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                
+                // Extract the AI's response text
+                if (data.candidates && data.candidates[0].content.parts[0].text) {
+                    const aiResponse = data.candidates[0].content.parts[0].text;
+                    displayAIResponse(aiResponse);
+                } else {
+                    throw new Error("Invalid response from AI");
+                }
+
+            } catch (error) {
+                console.error("AI Error:", error);
+                // Fallback to simulated response
+                simulateAIResponse(userInput);
+            } finally {
+                document.getElementById('ai-loading').classList.add('hidden');
+                document.getElementById('ai-analysis-container').classList.remove('hidden');
+            }
+        }
+
+        function simulateAIResponse(userInput) {
+            // Simulated AI response for demonstration
+            const responses = [
+                `Analysis: You're experiencing common networking anxiety, which is completely normal. The pressure to make meaningful connections while managing your nerves is challenging but manageable.
+
+Recommended Action Plan:
+1. Prepare 3 conversation starters about current industry trends
+2. Set a goal of having 2 meaningful conversations instead of meeting everyone
+3. Practice your introduction with a friend beforehand
+4. Plan to arrive 10 minutes early to acclimate to the environment
+5. Follow up with one connection within 24 hours
+
+Suggested Focus Areas: networking, communication, confidence
+
+Key Phrases to Use:
+- "What inspired you to attend this event?"
+- "I've been following [industry trend], what's your take on it?"
+- "It was great chatting about [topic]. Would you be open to connecting on LinkedIn?"
+
+Common Mistakes to Avoid:
+- Trying to talk to too many people at once
+- Dominating conversations instead of listening
+- Forgetting to exchange contact information
+
+Remember, quality connections matter more than quantity. Most people feel some level of nervousness at these events.`,
+
+                `Analysis: You're showing healthy awareness by wanting to deepen the connection while being mindful of intensity. This balance is key for building meaningful relationships.
+
+Recommended Action Plan:
+1. Prepare 2-3 open-ended questions about values and interests
+2. Share one personal story that shows vulnerability
+3. Practice active listening by summarizing their points
+4. Notice and mirror their body language subtly
+5. Focus on creating shared positive experiences
+
+Suggested Focus Areas: dating, communication, personality
+
+Key Phrases to Use:
+- "What's something you're really passionate about right now?"
+- "I really appreciated when you mentioned [previous conversation point]"
+- "What does your ideal weekend look like?"
+
+Common Mistakes to Avoid:
+- Asking too many questions in rapid succession
+- Talking only about yourself or only about them
+- Rushing physical intimacy or deep topics
+
+Authenticity builds trust. Be curious, not interrogative.`,
+
+                `Analysis: Social anxiety in group settings is common. Your awareness of feeling awkward is the first step toward improving your social skills.
+
+Recommended Action Plan:
+1. Approach individuals or pairs rather than large groups
+2. Use the host as a bridge to meet new people
+3. Have 3-4 conversation topics prepared
+4. Set a time limit for yourself (e.g., stay for 90 minutes)
+5. Practice the "observe, comment, question" technique
+
+Suggested Focus Areas: networking, communication, confidence
+
+Key Phrases to Use:
+- "Mind if I join you? I only know [host's name] here"
+- "What brings you to this event?"
+- "I noticed [observation about venue/music/food], what do you think?"
+
+Common Mistakes to Avoid:
+- Staring at your phone as a security blanket
+- Standing in corners hoping people approach you
+- Drinking too much to calm nerves
+
+Most people are happy to include newcomers. Remember that you're offering them conversation too.`
+            ];
+
+            // Choose response based on input keywords or random
+            let response;
+            const lowerInput = userInput.toLowerCase();
+            
+            if (lowerInput.includes('networking') || lowerInput.includes('work') || lowerInput.includes('professional')) {
+                response = responses[0];
+            } else if (lowerInput.includes('date') || lowerInput.includes('romantic') || lowerInput.includes('relationship')) {
+                response = responses[1];
+            } else {
+                response = responses[2];
+            }
+
+            displayAIResponse(response);
+        }
+
+        function displayAIResponse(response) {
+            // Display the response
+            document.getElementById('ai-analysis-content').textContent = response;
+            
+            // Extract and display suggested categories
+            const categoriesSection = response.match(/Suggested Focus Areas:(.*?)(?:\n|$)/);
+            if (categoriesSection) {
+                const categoriesContainer = document.querySelector('#ai-analysis-container .flex-wrap');
+                categoriesContainer.innerHTML = '';
+                
+                const categories = categoriesSection[1].split(',').map(cat => cat.trim());
+                categories.forEach(category => {
+                    const categoryData = Object.values(allTips).find(tip => 
+                        tip.title.toLowerCase().includes(category.toLowerCase()) || 
+                        category.toLowerCase().includes(tip.title.split(' ')[0].toLowerCase())
+                    );
+                    
+                    if (categoryData) {
+                        const colorMap = {
+                            'blue': 'bg-blue-100 text-blue-800',
+                            'pink': 'bg-pink-100 text-pink-800',
+                            'green': 'bg-green-100 text-green-800',
+                            'purple': 'bg-purple-100 text-purple-800',
+                            'yellow': 'bg-yellow-100 text-yellow-800',
+                            'indigo': 'bg-indigo-100 text-indigo-800',
+                            'red': 'bg-red-100 text-red-800',
+                            'teal': 'bg-teal-100 text-teal-800'
+                        };
+                        
+                        const span = document.createElement('span');
+                        span.className = `ai-tag ${colorMap[categoryData.color] || 'bg-gray-100 text-gray-800'}`;
+                        span.textContent = categoryData.title;
+                        span.style.cursor = 'pointer';
+                        span.onclick = () => navigateTo(categoryData.title.toLowerCase().replace(' tips', '').replace(' ', ''));
+                        categoriesContainer.appendChild(span);
+                    }
+                });
+            }
+            
+            // Extract and display action steps
+            const actionStepsSection = response.match(/Recommended Action Plan:(.*?)(?:\n\n|\nSuggested)/s);
+            if (actionStepsSection) {
+                const actionStepsContainer = document.getElementById('ai-action-steps');
+                actionStepsContainer.innerHTML = '';
+                
+                const steps = actionStepsSection[1].split('\n').filter(step => 
+                    step.trim() && /^\d+\./.test(step.trim())
+                );
+                
+                steps.forEach((step, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'flex items-start gap-3';
+                    li.innerHTML = `
+                        <div class="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span class="text-white text-xs font-bold">${index + 1}</span>
+                        </div>
+                        <span class="text-gray-700">${step.replace(/^\d+\.\s*/, '').trim()}</span>
+                    `;
+                    actionStepsContainer.appendChild(li);
+                });
+            }
+        }
+
+        function copyAIAnalysis() {
+            const analysisText = document.getElementById('ai-analysis-content')?.textContent;
+
+            if (!analysisText) {
+                alert('Please generate an analysis first.');
+                return;
+            }
+
+            navigator.clipboard.writeText(analysisText).then(() => {
+                alert('Analysis copied to clipboard!');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = analysisText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Analysis copied to clipboard!');
+            });
+        }
+
+        function saveAIAnalysis() {
+            const analysisText = document.getElementById('ai-analysis-content')?.textContent;
+
+            if (!analysisText) {
+                alert('Please generate an analysis first.');
+                return;
+            }
+
+            alert('Analysis saved to your profile!');
+            // In a real app, you would save this to a database or localStorage
+        }
+
+        function generateMoreTips() {
+            const currentAnalysis = document.getElementById('ai-analysis-content')?.textContent;
+            
+            if (!currentAnalysis) {
+                alert('Please generate an analysis first.');
+                return;
+            }
+
+            // Simulate generating more tips
+            const moreTips = [
+                "Try practicing your conversation starters with a friend or in front of a mirror.",
+                "Remember to breathe deeply before entering social situations to calm your nerves.",
+                "Focus on asking questions that start with 'how' or 'what' rather than yes/no questions.",
+                "Prepare an exit phrase like 'Excuse me, I need to refresh my drink' for awkward conversations.",
+                "Set small, achievable goals for each social interaction."
+            ];
+
+            const randomTips = moreTips.sort(() => 0.5 - Math.random()).slice(0, 3);
+            const newSection = "\n\nAdditional Tips:\n" + randomTips.map((tip, i) => `${i + 1}. ${tip}`).join('\n');
+            
+            document.getElementById('ai-analysis-content').textContent += newSection;
+        }
+
+        function resetAIAnalysis() {
+            document.getElementById('ai-situation-input').value = '';
+            document.getElementById('char-count').textContent = '0/1000';
+            document.getElementById('ai-analysis-container').classList.add('hidden');
+            document.getElementById('ai-analysis-content').textContent = '';
+        }
+
+        function useExamplePrompt(index) {
+            if (index >= 0 && index < examplePrompts.length) {
+                document.getElementById('ai-situation-input').value = examplePrompts[index];
+                document.getElementById('char-count').textContent = `${examplePrompts[index].length}/1000`;
+                
+                // Scroll to input
+                document.getElementById('ai-situation-input').focus();
+                document.getElementById('ai-situation-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up navigation highlighting
+            navigateTo('home');
+            
+            // Initialize character counter
+            const textarea = document.getElementById('ai-situation-input');
+            if (textarea) {
+                const charCount = document.getElementById('char-count');
+                textarea.addEventListener('input', function() {
+                    charCount.textContent = `${this.value.length}/1000`;
+                });
+            }
+        });
+    </script>
+</body>
+</html>
